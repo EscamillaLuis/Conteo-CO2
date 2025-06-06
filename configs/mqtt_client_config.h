@@ -24,7 +24,7 @@
 
 /* Configure the user credentials to be sent as part of MQTT CONNECT packet */
 /* Replace the token below with your Ubidots account token. */
-#define MQTT_USERNAME                     "8NFO330SMywVrTGZqMOM"
+#define MQTT_USERNAME                     ""
 #define MQTT_PASSWORD                     ""
 
 /********************* MQTT MESSAGE CONFIGURATION MACROS **********************/
