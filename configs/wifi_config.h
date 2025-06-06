@@ -34,15 +34,15 @@
 * Macros
 ********************************************************************************/
 /* SSID of the Wi-Fi Access Point to which the MQTT client connects. */
-#define WIFI_SSID                         /*"Galaxy A53 5G 0868"*/"Wi-Fi IPN"/*"QuamtumHS3_1918"*/
+#define WIFI_SSID                         ""
 
 /* Passkey of the above mentioned Wi-Fi SSID. */
-//#define WIFI_PASSWORD                     "spotless.magnetic.bridge"/*"HotSpotHS3_BFF5"*/
+#define WIFI_PASSWORD                     ""
 
 /* Security type of the Wi-Fi access point. See 'cy_wcm_security_t' structure
  * in "cy_wcm.h" for more details.
  */
-#define WIFI_SECURITY                     CY_WCM_SECURITY_OPEN
+#define WIFI_SECURITY                     CY_WCM_SECURITY_WPA2_AES_PSK
 
 /* Maximum Wi-Fi re-connection limit. */
 #define MAX_WIFI_CONN_RETRIES             (120u)
