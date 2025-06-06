@@ -241,7 +241,7 @@ static cy_rslt_t wifi_connect(void)
     {
         memset(&connect_param, 0, sizeof(connect_param));
         memcpy(connect_param.ap_credentials.SSID, WIFI_SSID, sizeof(WIFI_SSID));
-        //memcpy(connect_param.ap_credentials.password, WIFI_PASSWORD, sizeof(WIFI_PASSWORD));
+        memcpy(connect_param.ap_credentials.password, WIFI_PASSWORD, sizeof(WIFI_PASSWORD));
         connect_param.ap_credentials.security = WIFI_SECURITY;
 
         printf("Conectando a Wi-Fi AP '%s'...\n", connect_param.ap_credentials.SSID);
