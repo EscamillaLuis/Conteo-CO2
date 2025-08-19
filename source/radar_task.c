@@ -81,14 +81,6 @@ static void radar_sensing_callback(mtb_radar_sensing_context_t *context,
         case MTB_RADAR_SENSING_EVENT_COUNTER_FREE:
             occupy_status = 0;
             break;
-#else
-        /* Casos en modo detección de presencia */
-        case MTB_RADAR_SENSING_EVENT_PRESENCE_IN:
-            occupy_status = 1;
-            break;
-        case MTB_RADAR_SENSING_EVENT_PRESENCE_OUT:
-            occupy_status = 0;
-            break;
 #endif
         default:
             printf("Unknown event. Error!\n");
