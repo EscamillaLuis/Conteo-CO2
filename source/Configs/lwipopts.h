@@ -1,7 +1,10 @@
 #pragma once
 
 #include <whd_types.h>
+#include <stdint.h>
 
+/* Forward declaration required for SNTP time-setting callback */
+void set_time_from_sntp(uint32_t sec);
 #define MEM_ALIGNMENT                   (4)
 
 #define LWIP_RAW                        (1)
