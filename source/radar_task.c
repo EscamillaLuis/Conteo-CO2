@@ -68,7 +68,6 @@ static void radar_sensing_callback(mtb_radar_sensing_context_t *context,
     switch (event)
     {
 #ifdef RADAR_ENTRANCE_COUNTER_MODE
-        /* Casos en modo contador de entradas y salidas */
         case MTB_RADAR_SENSING_EVENT_COUNTER_IN:
             ++entrance_count_in;
             break;
@@ -89,7 +88,6 @@ static void radar_sensing_callback(mtb_radar_sensing_context_t *context,
     }
 
 #ifdef RADAR_ENTRANCE_COUNTER_MODE
-    /* Publicar datos solo si hay un cambio */
     if (entrance_count_in != last_entrance_count_in ||
     	entrance_count_out != last_entrance_count_out)
     {
@@ -104,8 +102,6 @@ static void radar_sensing_callback(mtb_radar_sensing_context_t *context,
         {
             printf("Error: No se pudo enviar el mensaje de conteo a la cola del publicador\n");
         }
-
-        /* Actualizar los valores previos */
         last_entrance_count_in = entrance_count_in;
         last_entrance_count_out = entrance_count_out;
     }
@@ -136,7 +132,6 @@ void radar_task(void *pvParameters)
                                          .spi = &mSPI};
 
 
-    /* Inicializar recursos de hardware */
     cyhal_gpio_init(hw_cfg.reset, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, true); // @suppress("Field cannot be resolved")
     cyhal_gpio_init(hw_cfg.ldo_en, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, true); // @suppress("Field cannot be resolved")
     cyhal_gpio_init(hw_cfg.irq, CYHAL_GPIO_DIR_INPUT, CYHAL_GPIO_DRIVE_PULLDOWN, false); // @suppress("Field cannot be resolved")
@@ -221,7 +216,7 @@ void reset_contadores(void)
     entrance_count_out = 0;
     occupy_status = 0;
 
-    printf("Contadores reiniciados manualmente (NTP o remoto).\n");
+    printf("Contadores reiniciados.\n");
 
     snprintf(local_pub_msg,
              sizeof(local_pub_msg),
