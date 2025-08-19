@@ -246,7 +246,7 @@ static cy_rslt_t wifi_connect(void)
 
         printf("Conectando a Wi-Fi AP '%s'...\n", connect_param.ap_credentials.SSID);
 
-        for (uint32_t retry = 0; retry < WIFI_MAX_RETRY; retry++)
+        for (uint32_t retry = 0;; retry++)
         {
             result = cy_wcm_connect_ap(&connect_param, &ip_addr);
             if (result == CY_RSLT_SUCCESS)
@@ -264,13 +264,12 @@ static cy_rslt_t wifi_connect(void)
                 }
                 return result;
             }
-            printf("Falla Wi-Fi (0x%08X). Reintento en %d ms, quedan %u.\n",
+            printf("Falla Wi-Fi (0x%08X). Reintento en %d ms, intento #%u.\n",
                    (unsigned int)result,
                    WIFI_RETRY_INTERVAL_MS,
-                   (unsigned int)(WIFI_MAX_RETRY - retry - 1));
+                   (unsigned int)(retry + 1));
             vTaskDelay(pdMS_TO_TICKS(WIFI_RETRY_INTERVAL_MS));
         }
-        printf("No se pudo conectar tras %u intentos.\n", (unsigned)WIFI_MAX_RETRY);
     }
     return result;
 }
