@@ -185,6 +185,9 @@
  */
 #define MBEDTLS_ENTROPY_FORCE_SHA256
 
+/* Disable SHA512 to prevent buffer overflow warnings in unused module */
+#undef MBEDTLS_SHA512_C
+
 /**
  * \def MBEDTLS_SELF_TEST
  *
