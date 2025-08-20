@@ -1,14 +1,13 @@
-# MQTT client with XENSIV&trade; sensors: PAS CO2
+# MQTT client with XENSIV&trade; sensors: PAS CO2 and BGT60TR13C
 
 ## Overview
 
-This code example demonstrates implementing an MQTT client using the [MQTT client library](https://github.com/Infineon/mqtt) for XENSIV&trade; sensor with Infineon connectivity devices. The library uses the following:
+This example implements an MQTT client using the [MQTT client library](https://github.com/Infineon/mqtt) with Infineon connectivity devices. Two XENSIV&trade; sensors are integrated:
 
- - AWS IoT device SDK MQTT client library that includes an MQTT 3.1.1 client
+- **PAS CO2** – provides CO2 concentration data using the `sensor-xensiv-pasco2` library.
+- **BGT60TR13C radar** – performs intelligent people counting with the XENSIV radar libraries and publishes counts via MQTT only when an entry or exit event occurs.
 
- - sensor-xensiv-pasco2 library that is configured to detect the CO2 presence
-
-In this example, the MQTT client RTOS task establishes a connection with the configured MQTT broker, and creates three tasks - publisher, subscriber, and PASCO2. The publisher task publishes messages on the `MQTT_PUB_TOPIC` topic when a new CO2 value is read back. The subscriber task subscribes to `MQTT_SUB_TOPIC`. The PASCO2 task initializes a context object of the pasco2 library and continuously reads the CO2 data from the sensor module.<br>
+The MQTT task establishes a connection to the configured broker and starts the publisher, subscriber, PASCO2, and radar tasks. The publisher task transmits new CO2 readings and count events on `MQTT_PUB_TOPIC`; the subscriber task listens on `MQTT_SUB_TOPIC` for configuration messages. Counters are automatically reset at the end of each day based on time and date obtained through the SNTP client.<br>
 
 From 'pasco2_task', there is another PAS CO2 configuration task created to enable configuring the sensor-xensiv-pasco2 library dynamically. From the MQTT broker, you can send JSON message to the MQTT client within `MQTT_SUB_TOPIC` to perform the configuration.<br>
 
@@ -19,13 +18,13 @@ From 'pasco2_task', there is another PAS CO2 configuration task created to enabl
 
 ## Sequence of operation
 
-1. A new CO2 value is read from the module.
+1. `pasco2_task` samples CO2 concentration and `radar_task` updates entry and exit counts.
 
-2. `pasco2_task` notifies the publisher task with the new CO2 value.
+2. When either value changes, the publisher task transmits the new data on `MQTT_PUB_TOPIC`.
 
-3. The publisher task publishes this new CO2 data to the remote server on a defined topic. You can verify this data from the MQTT broker.
+3. Time and date are synchronized through SNTP, and counters reset automatically at the end of the day.
 
-4. The MQTT broker sends the configuration as a JSON string to this client to configure the 'sensor-xensiv-pasco2' library. This allows the example to perform remote configuration.
+4. The MQTT broker can send JSON configuration messages on `MQTT_SUB_TOPIC` to adjust sensor parameters.
 
 **Notes:**
 
@@ -57,13 +56,13 @@ From 'pasco2_task', there is another PAS CO2 configuration task created to enabl
 
 ## Hardware setup
 
-This code example requires the XENSIV™ PAS CO2 wing board as part of the connected sensor kit.
+This code example requires the XENSIV™ PAS CO2 wing board and the BGT60TR13C radar sensor module.
 
-1. Connect the PAS CO2 wing board to the CYSBSYSKIT-DEV-01 kit with the pin headers.
+1. Connect both sensors to the CYSBSYSKIT-DEV-01 kit using the respective headers.
 
 2. Connect the CYSBSYSKIT-DEV-01 kit to the PC with a USB cable.
 
-3. Place the CYSBSYSKIT-DEV-01 kit at a location in a room which is not very high.
+3. Place the CYSBSYSKIT-DEV-01 kit in a suitable location for CO2 sensing and radar coverage.
 
    **Rapid IoT connect platform RP01 feather kit (CYSBSYSKIT-DEV-01)**
 
