@@ -6,22 +6,17 @@
 #include "task.h"
 #include <stdlib.h>
 
-// Esta función está definida en radar_task.c
 extern void reset_contadores(void);
 
 // Variables para manejo de tiempo NTP
 static time_t tiempo_base_ntp = 0;
 static uint32_t tick_base_ntp = 0;
 
-// Configuración de hora de reinicio deseada (CDMX)
 #define HORA_RESET     23
 #define MINUTO_RESET   59
 
 static int ultimo_reset_dia = -1;
 
-/**
- * @brief Inicializa el cliente SNTP para obtener la hora desde Internet.
- */
 void init_sntp_client(void)
 {
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -30,10 +25,6 @@ void init_sntp_client(void)
     printf("Cliente SNTP inicializado\n");
 }
 
-/**
- * @brief Función llamada por LWIP cuando se recibe hora desde NTP.
- *        Ajusta zona horaria y guarda base de tiempo.
- */
 void set_time_from_sntp(uint32_t sec)
 {
     setenv("TZ", "CST6CDT,M4.1.0,M10.5.0", 1);  // Zona horaria CDMX con horario de verano
