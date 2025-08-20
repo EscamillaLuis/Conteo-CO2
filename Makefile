@@ -107,6 +107,11 @@ else
 CFLAGS=
 endif
 
+# Suppress array-bound warnings from DHCP server sources in mtb_shared
+ifeq ($(TOOLCHAIN),GCC_ARM)
+CFLAGS+=-Wno-array-parameter
+endif
+
 # Additional / custom C++ compiler flags.
 #
 # NOTE: Includes and defines should use the INCLUDES and DEFINES variable
