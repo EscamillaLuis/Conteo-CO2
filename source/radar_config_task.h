@@ -33,7 +33,7 @@
 /*******************************************************************************
  * Macros
  ******************************************************************************/
-#define RADAR_CONFIG_TASK_NAME       "RADAR CONFIG TASK"
+#define RADAR_CONFIG_TASK_NAME       "RADAR_CFG_TASK"
 #define RADAR_CONFIG_TASK_PRIORITY   (5)
 #define RADAR_CONFIG_TASK_STACK_SIZE (1024 * 2)
 
