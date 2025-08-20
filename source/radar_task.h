@@ -11,7 +11,7 @@
 /*******************************************************************************
  * Macros
  ******************************************************************************/
-#define RADAR_TASK_NAME       "RADAR PRESENCE TASK"
+#define RADAR_TASK_NAME       "RADAR_TASK"
 #define RADAR_TASK_STACK_SIZE (1024 * 4)
 #define RADAR_TASK_PRIORITY   (3)
 
