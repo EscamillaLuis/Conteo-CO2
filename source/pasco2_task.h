@@ -38,7 +38,7 @@
 /*******************************************************************************
  * Macros
  ******************************************************************************/
-#define PASCO2_TASK_NAME       "CO2 SENSOR TASK"
+#define PASCO2_TASK_NAME       "PASCO2_TASK"
 #define PASCO2_TASK_PRIORITY   (2)
 #define PASCO2_TASK_STACK_SIZE (1024 * 4)
 
