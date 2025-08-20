@@ -509,11 +509,15 @@ Although this section provides instructions only for AWS IoT and the local Mosqu
 | ------------------------|-------------------- |
 | *main.c* |Contains the application entry point. It initializes the UART for debugging and then initializes the controller tasks|
 | *mqtt_client_config.c* |Global variables for MQTT connection|
-| *mqtt_task.c* |Contains the task function to: <br> 1. Establish an MQTT connection <br> 2. Start publisher and subscriber tasks <br> 3. Start the PASCO2 task|
+| *mqtt_task.c* |Contains the task function to: <br> 1. Establish an MQTT connection <br> 2. Start publisher and subscriber tasks <br> 3. Start the PASCO2, radar, and time-sync tasks|
 | *publisher_task.c* |Contains the task function to publish message to the MQTT broker|
 | *subscriber_task.c* |Contains the task function to subscribe messages from the MQTT broker|
 | *pasco2_task.c* |Contains the task function to get the CO2 value from the sensor|
 | *pasco2_config_task.c* |Contains the task function to configure the sensor-xensiv-pasco2 library |
+| *radar_task.c* |Contains the task function to perform radar-based people counting and publish events|
+| *radar_config_task.c* |Contains the task function to parse remote configuration and update radar parameters|
+| *radar_led_task.c* |Implements LED patterns for radar counter events|
+| *Obtener_fecha.c* |Implements the SNTP client and resets counters at the start of each day|
 
 <br>
 
