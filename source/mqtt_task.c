@@ -297,8 +297,7 @@ static cy_rslt_t mqtt_init(void)
         return ~CY_RSLT_SUCCESS;
     }
     status_flag |= BUFFER_INITIALIZED;
-
-    /* Crear instancia MQTT */
+  
     result = cy_mqtt_create(
                  mqtt_network_buffer,
                  MQTT_NETWORK_BUFFER_SIZE,
