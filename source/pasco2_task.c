@@ -246,7 +246,6 @@ void pasco2_task(void *pvParameters)
         }
 
         result = xensiv_pasco2_mtb_read(&xensiv_pasco2, (uint16_t)pressure, &ppm);
-        // Si la lectura fue exitosa, envía mensajes separados para CO₂, presión y temperatura
         if (result == CY_RSLT_SUCCESS)
         {
         	co2_buffer[sample_index] = ppm;
@@ -260,7 +259,6 @@ void pasco2_task(void *pvParameters)
         	        buffer_filled = true;
         	    }
         }
-        // Verificar si ya pasaron 60 segundos desde el último envío
         if (buffer_filled && (xTaskGetTickCount() - last_publish_time) >= pdMS_TO_TICKS(180000))
         {
             uint32_t sum_co2 = 0;
@@ -278,7 +276,6 @@ void pasco2_task(void *pvParameters)
             float avg_pressure = sum_pressure / NUM_SAMPLES;
             float avg_temperature = sum_temperature / NUM_SAMPLES;
 
-            // Publicar promedio CO₂
             char co2_message[64];
             snprintf(co2_message, sizeof(co2_message), "{\"CO2_PPM\": %d}", avg_co2);
             printf("Enviando promedio MQTT (CO2): %s\n", co2_message);
@@ -286,7 +283,6 @@ void pasco2_task(void *pvParameters)
             strncpy(co2_data.data, co2_message, sizeof(co2_data.data) - 1);
             xQueueSendToBack(publisher_task_q, &co2_data, 0);
 
-            // Publicar promedio Presión
             char pressure_message[64];
             snprintf(pressure_message, sizeof(pressure_message), "{\"Pressure_hPa\": %.2f}", avg_pressure);
             printf("Enviando promedio MQTT (Presión): %s\n", pressure_message);
@@ -294,7 +290,6 @@ void pasco2_task(void *pvParameters)
             strncpy(pressure_data.data, pressure_message, sizeof(pressure_data.data) - 1);
             xQueueSendToBack(publisher_task_q, &pressure_data, 0);
 
-            // Publicar promedio Temperatura
             char temperature_message[64];
             snprintf(temperature_message, sizeof(temperature_message), "{\"Temperature_C\": %.2f}", avg_temperature);
             printf("Enviando promedio MQTT (Temperatura): %s\n", temperature_message);
@@ -302,10 +297,10 @@ void pasco2_task(void *pvParameters)
             strncpy(temperature_data.data, temperature_message, sizeof(temperature_data.data) - 1);
             xQueueSendToBack(publisher_task_q, &temperature_data, 0);
 
-            last_publish_time = xTaskGetTickCount(); // Actualizar hora del último envío
+            last_publish_time = xTaskGetTickCount(); 
         }
 
-        vTaskDelay(pdMS_TO_TICKS(5000)); // 5 segundos entre cada medición
+        vTaskDelay(pdMS_TO_TICKS(5000)); 
 
     }
 
