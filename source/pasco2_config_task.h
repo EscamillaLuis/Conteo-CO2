@@ -33,7 +33,7 @@
 /*******************************************************************************
  * Macros
  ******************************************************************************/
-#define PASCO2_CONFIG_TASK_NAME       "PASCO2 CONFIG TASK"
+#define PASCO2_CONFIG_TASK_NAME       "PASCO2_CFG_TASK"
 #define PASCO2_CONFIG_TASK_PRIORITY   (5)
 #define PASCO2_CONFIG_TASK_STACK_SIZE (1024 * 2)
 
