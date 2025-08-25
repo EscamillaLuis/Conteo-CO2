@@ -102,6 +102,7 @@ static void radar_sensing_callback(mtb_radar_sensing_context_t *context,
         {
             printf("Error: No se pudo enviar el mensaje de conteo a la cola del publicador\n");
         }
+
         last_entrance_count_in = entrance_count_in;
         last_entrance_count_out = entrance_count_out;
     }
@@ -167,12 +168,12 @@ void radar_task(void *pvParameters)
         CY_ASSERT(0);
     }
 
-    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_installation", "ceiling");
-    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_orientation", "landscape");
-    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_ceiling_height", "2.5");
-    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_entrance_width", "2.5");
-    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_sensitivity", "0.6");
-    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_traffic_light_zone", "0");
+    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_installation", "ceiling"); // "ceiling", "side"
+    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_orientation", "landscape"); //"landscape", "portrait"
+    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_ceiling_height", "2.3");
+    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_entrance_width", "1.0");
+    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_sensitivity", "0.4");
+    mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_traffic_light_zone", "0.0");
     mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_reverse", "false");
     mtb_radar_sensing_set_parameter(&radar_sensing_context, "radar_counter_min_person_height", "1.2");
 #endif
@@ -216,18 +217,25 @@ void reset_contadores(void)
     entrance_count_out = 0;
     occupy_status = 0;
 
-    printf("Contadores reiniciados.\n");
+    printf("Contadores reiniciados automaticamente.\n");
 
     snprintf(local_pub_msg,
              sizeof(local_pub_msg),
              "{\"IN_Count\": %ld, \"OUT_Count\": %ld}",
              entrance_count_in, entrance_count_out);
 
-    publisher_data_t radar_data = {.cmd = PUBLISH_MQTT_MSG};
-    strncpy(radar_data.data, local_pub_msg, sizeof(radar_data.data) - 1);
-    if (xQueueSendToBack(publisher_task_q, &radar_data, 0) != pdPASS)
+    if (publisher_task_q != NULL)
+        {
+            publisher_data_t radar_data = {.cmd = PUBLISH_MQTT_MSG};
+            strncpy(radar_data.data, local_pub_msg, sizeof(radar_data.data) - 1);
+            if (xQueueSendToBack(publisher_task_q, &radar_data, 0) != pdPASS)
+            {
+                printf("Error: No se pudo enviar el mensaje de reinicio a la cola del publicador\n");
+            }
+        }
+    else
     {
-        printf("Error: No se pudo enviar el mensaje de reinicio a la cola del publicador\n");
+    	printf("Advertencia: cola del publicador no inicializada; se omite publicación de reinicio\n");
     }
 }
 
