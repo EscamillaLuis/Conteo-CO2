@@ -99,7 +99,7 @@ int main(void)
     /* \x1b[2J\x1b[;H - ANSI ESC sequence to clear screen. */
     printf("\x1b[2J\x1b[;H");
     printf("=====================================================================\n");
-    printf("CE233236 - AnyCloud Example MQTT Client with xensiv sensors: PASCO2\n");
+    printf("CE233236 - MQTT Client with xensiv sensors: PASCO2 and BGT60TR13C\n");
     printf("=====================================================================\n\n");
 
     /* Create the MQTT Client task. */
