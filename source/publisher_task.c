@@ -1,9 +1,9 @@
 /******************************************************************************
- * File Name:   publisher_task.c
+ * File Name:   radar_config_task.c
  *
- * Description: This file contains the task that and publishes MQTT messages on
- *              the topic 'MQTT_PUB_TOPIC', which shows the event data or meta
- *              data of connected sensor module.
+ * Description: This file contains the task that handles parsing the new
+ *              configuration coming from remote server and setting it to the
+ *              xensiv-radar-sensing library.
  *
  * Related Document: See README.md
  *
@@ -26,132 +26,233 @@
  * ===========================================================================
  */
 
-#include "cyhal.h"
-#include "cybsp.h"
-#include "FreeRTOS.h"
+/* Header file from system */
+#include "stdbool.h"
+#include "stdio.h"
+#include "stdlib.h"
 
-/* Task header files */
+/* Header file from library */
+#include "cy_json_parser.h"
+
+/* Header file for local tasks */
 #include "publisher_task.h"
-#include "mqtt_task.h"
+#include "radar_config_task.h"
+#include "radar_task.h"
 #include "subscriber_task.h"
 
-/* Configuration file for MQTT client */
-#include "mqtt_client_config.h"
-
-/* Middleware libraries */
-#include "cy_mqtt_api.h"
-#include "cy_retarget_io.h"
+/*******************************************************************************
+ * Global Variables
+ ******************************************************************************/
+TaskHandle_t radar_config_task_handle = NULL;
 
 /*******************************************************************************
- * Macros
+ * Local Variables
  ******************************************************************************/
-/* The maximum number of times each PUBLISH in this example will be retried. */
-#define PUBLISH_RETRY_LIMIT             (10)
+static char json_value[32] = {0};
 
-/* A PUBLISH message is retried if no response is received within this
- * time (in milliseconds).
- */
-#define PUBLISH_RETRY_MS                (1000)
-
-/* Queue length of a message queue that is used to communicate with the
- * publisher task.
- */
-#define PUBLISHER_TASK_QUEUE_LENGTH     (3u)
-
-/******************************************************************************
-* Global Variables
-*******************************************************************************/
-/* FreeRTOS task handle for this task. */
-TaskHandle_t publisher_task_handle;
-
-/* Handle of the queue holding the commands for the publisher task */
-QueueHandle_t publisher_task_q;
-
-/* Structure to store publish message information. */
-cy_mqtt_publish_info_t publish_info =
-{
-    .qos = (cy_mqtt_qos_t) MQTT_MESSAGES_QOS,
-    .topic = MQTT_PUB_TOPIC,
-    .topic_len = (sizeof(MQTT_PUB_TOPIC) - 1),
-    .retain = false,
-    .dup = false
-};
-
-/******************************************************************************
- * Function Name: publisher_task
- ******************************************************************************
+/*******************************************************************************
+ * Function Name: json_parser_cb
+ *******************************************************************************
  * Summary:
- *  Task that sets up the user button GPIO for the publisher and publishes
- *  MQTT messages to the broker. The user button init and deinit operations,
- *  and the MQTT publish operation is performed based on commands sent by other
- *  tasks and callbacks over a message queue.
+ *   Callback function that parses incoming json string.
  *
  * Parameters:
- *  void *pvParameters : Task parameter defined during task creation (unused)
+ *      json_object: incoming json object
+ *      arg: callback data. Here it should be the context of
+ *           mtb_radar_sensing_context_t.
  *
  * Return:
- *  void
- *
+ *   none
  ******************************************************************************/
-void publisher_task(void *pvParameters)
+static cy_rslt_t json_parser_cb(cy_JSON_object_t *json_object, void *arg)
 {
-    /* Status variable */
+    mtb_radar_sensing_context_t *context = (mtb_radar_sensing_context_t *)arg;
+
+    bool bad_entry = false;
+    bool not_success = false;
+    /* Reset and get new value for each new json object entry */
+    memset(json_value, '\0', 32);
+    memcpy(json_value, json_object->value, json_object->value_length);
+
+    publisher_data_t publisher_q_data = { .cmd = PUBLISH_MQTT_MSG, .data = {0} };
+
+#ifdef RADAR_ENTRANCE_COUNTER_MODE
+    /* Supported keys and values for entrance counter */
+    if (memcmp(json_object->object_string, "radar_counter_installation", json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_counter_installation", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string, "radar_counter_orientation", json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_counter_orientation", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string, "radar_counter_ceiling_height", json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_counter_ceiling_height", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string, "radar_counter_entrance_width", json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_counter_entrance_width", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string, "radar_counter_sensitivity", json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_counter_sensitivity", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string,
+                    "radar_counter_traffic_light_zone",
+                    json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_counter_traffic_light_zone", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string, "radar_counter_reverse", json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_counter_reverse", json_value) != MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string, "radar_counter_min_person_height", json_object->object_string_length) ==
+             0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_counter_min_person_height", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string, "radar_counter_in_number", json_object->object_string_length) == 0)
+    {
+        entrance_count_in = atoi(json_value);
+    }
+    else if (memcmp(json_object->object_string, "radar_counter_out_number", json_object->object_string_length) == 0)
+    {
+        entrance_count_out = atoi(json_value);
+    }
+#else
+    /* Supported keys and values for presence detection */
+    if (memcmp(json_object->object_string, "radar_presence_range_max", json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_presence_range_max", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+    else if (memcmp(json_object->object_string, "radar_presence_sensitivity", json_object->object_string_length) == 0)
+    {
+        if (mtb_radar_sensing_set_parameter(context, "radar_presence_sensitivity", json_value) !=
+            MTB_RADAR_SENSING_SUCCESS)
+        {
+            not_success = true;
+        }
+    }
+#endif
+    else
+    {
+        /* Invalid input json key */
+        bad_entry = true;
+    }
+
+    // Keep in mind: local_pub_msg has a size of MQTT_PUB_DATA_MAX_SIZE.
+    if (bad_entry)
+    {
+    	snprintf(publisher_q_data.data,
+    	         sizeof(publisher_q_data.data),
+                 "\"%.*s\": invalid entry key.",
+                 json_object->object_string_length,
+                 json_object->object_string);
+    }
+    else if (not_success)
+    {
+    	snprintf(publisher_q_data.data,
+    	         sizeof(publisher_q_data.data),
+                 "%.*s: configuration failed.",
+                 json_object->object_string_length,
+                 json_object->object_string);
+    }
+    else
+    {
+    	snprintf(publisher_q_data.data,
+    	         sizeof(publisher_q_data.data),
+                 "Config => %.*s: %.*s",
+                 json_object->object_string_length,
+                 json_object->object_string,
+                 json_object->value_length,
+                 json_object->value);
+    }
+
+    /* Send message back to publish queue. If queue is full, message will be dropped. */
+    xQueueSendToBack(publisher_task_q, &publisher_q_data, 0);
+
+    return bad_entry ? CY_RSLT_JSON_GENERIC_ERROR : CY_RSLT_SUCCESS;
+}
+
+/*******************************************************************************
+ * Function Name: radar_config_task
+ *******************************************************************************
+ * Summary:
+ *      Parse incoming json string, and set new configuration to
+ *      xensiv-radar-sensing library.
+ *
+ * Parameters:
+ *   pvParameters: thread
+ *
+ * Return:
+ *   none
+ ******************************************************************************/
+void radar_config_task(void *pvParameters)
+{
     cy_rslt_t result;
 
-    publisher_data_t publisher_q_data;
-
-    /* Command to the MQTT client task */
-    mqtt_task_cmd_t mqtt_task_cmd;
-
     /* To avoid compiler warnings */
-    (void) pvParameters;
+    (void)pvParameters;
 
-    /* Create a message queue to communicate with other tasks and callbacks. */
-    publisher_task_q = xQueueCreate(PUBLISHER_TASK_QUEUE_LENGTH, sizeof(publisher_data_t));
+    /* Register JSON parser to parse input configuration JSON string */
+    cy_JSON_parser_register_callback(json_parser_cb, (void *)&radar_sensing_context);
 
     while (true)
     {
-        /* Wait for commands from other tasks and callbacks. */
-        if (pdTRUE == xQueueReceive(publisher_task_q, &publisher_q_data, portMAX_DELAY))
+        /* Block till a notification is received from the subscriber task. */
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        /* Get mutex to block any other json parse jobs */
+        if (xSemaphoreTake(sem_sub_payload, portMAX_DELAY) == pdTRUE)
         {
-            switch(publisher_q_data.cmd)
+            /* Get mutex to block mtb_radar_sensing_process in radar task */
+            if (xSemaphoreTake(sem_radar_sensing_context, portMAX_DELAY) == pdTRUE)
             {
-                case PUBLISHER_INIT:
+                result = cy_JSON_parser(sub_msg_payload, strlen(sub_msg_payload));
+                if (result != CY_RSLT_SUCCESS)
                 {
-                    /* Reserved for customer extension. */
-                    break;
+                    printf("radar_config_task: json parser error!\n");
                 }
-
-                case PUBLISHER_DEINIT:
-                {
-                    /* Reserved for customer extension. */
-                    break;
-                }
-
-                case PUBLISH_MQTT_MSG:
-                {
-                    /* Publish the data received over the message queue. */
-                    publish_info.payload = publisher_q_data.data;
-                    publish_info.payload_len = strlen(publish_info.payload);
-
-                    printf("  Publisher: Publishing '%s' on the topic '%s'\n\n",
-                           (char *) publish_info.payload, publish_info.topic);
-
-                    result = cy_mqtt_publish(mqtt_connection, &publish_info);
-
-                    if (result != CY_RSLT_SUCCESS)
-                    {
-                        printf("  Publisher: MQTT Publish failed with error 0x%0X.\n\n", (int)result);
-
-                        /* Communicate the publish failure with the the MQTT
-                         * client task.
-                         */
-                        mqtt_task_cmd = HANDLE_MQTT_PUBLISH_FAILURE;
-                        xQueueSend(mqtt_task_q, &mqtt_task_cmd, portMAX_DELAY);
-                    }
-                    break;
-                }
+                xSemaphoreGive(sem_radar_sensing_context);
             }
+            xSemaphoreGive(sem_sub_payload);
         }
     }
 }
