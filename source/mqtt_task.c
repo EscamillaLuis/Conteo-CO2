@@ -113,14 +113,8 @@ void mqtt_client_task(void *pvParameters)
     {
         goto exit_cleanup;
     }
-    // Inicializa el cliente NTP y crea la tarea que reinicia contadores a diario
+    // Inicializa el cliente NTP para sincronizar hora y fecha
     init_sntp_client();
-
-    if (pdPASS != xTaskCreate(tarea_verificar_fecha, "Tarea Fecha", 1024, NULL, 1, NULL))
-    {
-        printf("No se pudo crear la tarea de verificación de fecha.\n");
-        goto exit_cleanup;
-    }
 
 
     if ((CY_RSLT_SUCCESS != mqtt_init()) || (CY_RSLT_SUCCESS != mqtt_connect()))
@@ -155,6 +149,13 @@ void mqtt_client_task(void *pvParameters)
                               NULL, RADAR_TASK_PRIORITY, &radar_task_handle))
     {
         printf("Failed to create '%s' task!\n", RADAR_TASK_NAME);
+        goto exit_cleanup;
+    }
+
+    // Crea la tarea que verifica la fecha y reinicia contadores diariamente
+    if (pdPASS != xTaskCreate(tarea_verificar_fecha, "Tarea Fecha", 1024, NULL, 1, NULL))
+    {
+        printf("No se pudo crear la tarea de verificación de fecha.\n");
         goto exit_cleanup;
     }
 
@@ -297,7 +298,8 @@ static cy_rslt_t mqtt_init(void)
         return ~CY_RSLT_SUCCESS;
     }
     status_flag |= BUFFER_INITIALIZED;
-  
+
+    /* Crear instancia MQTT */
     result = cy_mqtt_create(
                  mqtt_network_buffer,
                  MQTT_NETWORK_BUFFER_SIZE,
