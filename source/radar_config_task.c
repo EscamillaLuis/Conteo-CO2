@@ -73,9 +73,9 @@ static cy_rslt_t json_parser_cb(cy_JSON_object_t *json_object, void *arg)
     /* Reset and get new value for each new json object entry */
     memset(json_value, '\0', 32);
     memcpy(json_value, json_object->value, json_object->value_length);
-    
+
     publisher_data_t publisher_q_data = { .cmd = PUBLISH_MQTT_MSG, .data = {0} };
-    
+
 #ifdef RADAR_ENTRANCE_COUNTER_MODE
     /* Supported keys and values for entrance counter */
     if (memcmp(json_object->object_string, "radar_counter_installation", json_object->object_string_length) == 0)
@@ -177,26 +177,27 @@ static cy_rslt_t json_parser_cb(cy_JSON_object_t *json_object, void *arg)
         bad_entry = true;
     }
 
+    // Keep in mind: local_pub_msg has a size of MQTT_PUB_DATA_MAX_SIZE.
     if (bad_entry)
     {
-        snprintf(publisher_q_data.data,
-                 sizeof(publisher_q_data.data),
+    	snprintf(publisher_q_data.data,
+    	         sizeof(publisher_q_data.data),
                  "\"%.*s\": invalid entry key.",
                  json_object->object_string_length,
                  json_object->object_string);
     }
     else if (not_success)
     {
-        snprintf(publisher_q_data.data,
-                 sizeof(publisher_q_data.data),
+    	snprintf(publisher_q_data.data,
+    	         sizeof(publisher_q_data.data),
                  "%.*s: configuration failed.",
                  json_object->object_string_length,
                  json_object->object_string);
     }
     else
     {
-        snprintf(publisher_q_data.data,
-                 sizeof(publisher_q_data.data),
+    	snprintf(publisher_q_data.data,
+    	         sizeof(publisher_q_data.data),
                  "Config => %.*s: %.*s",
                  json_object->object_string_length,
                  json_object->object_string,
